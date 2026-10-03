@@ -2,6 +2,8 @@
 
 [oxlint](https://oxc.rs) JS plugin with rules for [Effect](https://effect.website) TypeScript code.
 
+The source is `plugin.ts`; `plugin.js` is its build (`bun run build`), committed because Node does not strip types under `node_modules`.
+
 | Rule | What it reports |
 | --- | --- |
 | `ts-lint/no-unknown` | `unknown` in types; use the real type, or `void` when nothing is returned. |
