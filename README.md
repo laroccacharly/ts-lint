@@ -37,5 +37,5 @@ Pin a tag in consumers (`github:laroccacharly/ts-lint#v0.1.0`) so a new version 
 ```sh
 bun run build
 # bump "version" in package.json, then:
-git commit -am "v0.2.0" && git tag v0.2.0 && git push --follow-tags
+git commit -am "v0.2.0" && git tag v0.2.0 && git push origin main v0.2.0
 ```
