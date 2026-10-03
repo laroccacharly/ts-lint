@@ -1,0 +1,14 @@
+{
+  "name": "ts-lint",
+  "version": "0.1.0",
+  "description": "oxlint JS plugin with rules for Effect TypeScript code",
+  "license": "MIT",
+  "type": "module",
+  "exports": "./plugin.ts",
+  "scripts": {
+    "lint": "oxlint"
+  },
+  "devDependencies": {
+    "oxlint": "^1.86.0"
+  }
+}
