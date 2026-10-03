@@ -13,7 +13,7 @@ The source is `plugin.ts`; `plugin.js` is its build (`bun run build`), committed
 ## Usage
 
 ```sh
-bun add -d github:laroccacharly/ts-lint
+bun add -d github:laroccacharly/ts-lint#v0.1.0
 ```
 
 ```ts
@@ -28,4 +28,14 @@ export default defineConfig({
     "ts-lint/no-undefined": "error",
   },
 })
+```
+
+## Releasing
+
+Pin a tag in consumers (`github:laroccacharly/ts-lint#v0.1.0`) so a new version is a new specifier and bun fetches it, rather than reusing a cached `main`.
+
+```sh
+bun run build
+# bump "version" in package.json, then:
+git commit -am "v0.2.0" && git tag v0.2.0 && git push --follow-tags
 ```
