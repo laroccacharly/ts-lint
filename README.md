@@ -2,6 +2,10 @@
 
 [oxlint](https://oxc.rs) JS plugin with rules for [Effect](https://effect.website) TypeScript code.
 
+## Demo
+
+[![ts-lint demo](https://img.youtube.com/vi/3FGAsT1NoWo/maxresdefault.jpg)](https://youtu.be/3FGAsT1NoWo)
+
 The source is `plugin.ts`; `plugin.js` is its build (`bun run build`), committed because Node does not strip types under `node_modules`.
 
 | Rule | What it reports |
