@@ -2,7 +2,7 @@
 
 `ts-lint` rules are syntax-only. [@effect/tsgo](https://github.com/Effect-TS/tsgo) adds about 100 type-aware Effect rules (floating Effects, chained `Effect.provide`, missing `return yield*`, ...).
 
-Linting runs in two steps: `oxlint` for general rules and the `ts-lint/*` plugin, then `ts-lint-effect` for the Effect rules. `ts-lint-effect` runs `effect-tsgo diagnostics`, which type-checks with its own embedded TypeScript-Go, so oxlint stays unpatched and its versions stay free. The cost is a second type-check pass, about a second on a small project.
+Linting runs in two steps: `oxlint` for general rules and the `ts-lint/*` rules (via `extends: [tsLint]` from `ts-lint/config`), then `ts-lint-effect` for the Effect rules. `ts-lint-effect` runs `effect-tsgo diagnostics`, which type-checks with its own embedded TypeScript-Go, so oxlint stays unpatched and its versions stay free. The cost is a second type-check pass, about a second on a small project.
 
 ## Setup in a consumer package
 

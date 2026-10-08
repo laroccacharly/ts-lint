@@ -1,13 +1,19 @@
 {
   "name": "ts-lint",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "oxlint JS plugin with rules for Effect TypeScript code",
   "license": "MIT",
   "type": "module",
   "bin": {
     "ts-lint-effect": "./effect-lint.ts"
   },
-  "exports": "./plugin.js",
+  "exports": {
+    ".": "./plugin.js",
+    "./config": {
+      "types": "./config.d.ts",
+      "default": "./config.js"
+    }
+  },
   "scripts": {
     "build": "bun build plugin.ts --outfile plugin.js --target node --format esm",
     "lint": "oxlint"
@@ -20,6 +26,8 @@
     "oxlint": "^1.86.0"
   },
   "files": [
+    "config.d.ts",
+    "config.js",
     "plugin.js",
     "plugin.ts",
     "effect-lint.ts"

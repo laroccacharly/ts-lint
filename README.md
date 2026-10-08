@@ -17,20 +17,18 @@ The source is `plugin.ts`; `plugin.js` is its build (`bun run build`), committed
 ## Usage
 
 ```sh
-bun add -d github:laroccacharly/ts-lint#v0.2.0
+bun add -d github:laroccacharly/ts-lint#v0.3.0
 ```
+
+`ts-lint/config` registers the plugin and enables every rule (`no-unknown` as a warning, the others as errors). Override a rule in the project's own `rules`.
 
 ```ts
 // oxlint.config.ts
 import { defineConfig } from "oxlint"
+import tsLint from "ts-lint/config"
 
 export default defineConfig({
-  jsPlugins: ["ts-lint"],
-  rules: {
-    "ts-lint/no-unknown": "warn",
-    "ts-lint/effect-fn-return-type": "error",
-    "ts-lint/no-undefined": "error",
-  },
+  extends: [tsLint],
 })
 ```
 
@@ -38,10 +36,10 @@ For type-aware Effect rules from [@effect/tsgo](https://github.com/Effect-TS/tsg
 
 ## Releasing
 
-Pin a tag in consumers (`github:laroccacharly/ts-lint#v0.2.0`) so a new version is a new specifier and bun fetches it, rather than reusing a cached `main`.
+Pin a tag in consumers (`github:laroccacharly/ts-lint#v0.3.0`) so a new version is a new specifier and bun fetches it, rather than reusing a cached `main`.
 
 ```sh
 bun run build
 # bump "version" in package.json, then:
-git commit -am "v0.2.0" && git tag v0.2.0 && git push origin main v0.2.0
+git commit -am "v0.3.0" && git tag v0.3.0 && git push origin main v0.3.0
 ```
