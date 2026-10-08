@@ -17,7 +17,7 @@ The source is `plugin.ts`; `plugin.js` is its build (`bun run build`), committed
 ## Usage
 
 ```sh
-bun add -d github:laroccacharly/ts-lint#v0.1.0
+bun add -d github:laroccacharly/ts-lint#v0.2.0
 ```
 
 ```ts
@@ -34,9 +34,11 @@ export default defineConfig({
 })
 ```
 
+For type-aware Effect rules from [@effect/tsgo](https://github.com/Effect-TS/tsgo), run `ts-lint-effect` after `oxlint`: see [docs/effect-tsgo.md](docs/effect-tsgo.md).
+
 ## Releasing
 
-Pin a tag in consumers (`github:laroccacharly/ts-lint#v0.1.0`) so a new version is a new specifier and bun fetches it, rather than reusing a cached `main`.
+Pin a tag in consumers (`github:laroccacharly/ts-lint#v0.2.0`) so a new version is a new specifier and bun fetches it, rather than reusing a cached `main`.
 
 ```sh
 bun run build
