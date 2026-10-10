@@ -42,6 +42,17 @@ var plugin_default = {
         }
       })
     },
+    "no-try-promise": {
+      create: (context) => ({
+        MemberExpression: (node) => {
+          const object = node.object;
+          const property = node.property;
+          if (object.type === "Identifier" && object.name === "Effect" && property.type === "Identifier" && property.name === "tryPromise") {
+            context.report({ node, message: "Check that no Effect-native alternative exists; otherwise wrap the Promise library once in a service under `adapters/`." });
+          }
+        }
+      })
+    },
     "effect-fn-return-type": {
       create: (context) => ({
         VariableDeclarator: (node) => {

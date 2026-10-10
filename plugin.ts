@@ -71,6 +71,19 @@ export default {
         },
       }),
     },
+    // Effect.tryPromise wraps a Promise-based API; an Effect-native one (HttpClient, FileSystem, ...) often exists already.
+    // Otherwise the library is wrapped once in a service under `adapters/`, where the shared config turns this rule off.
+    "no-try-promise": {
+      create: (context: Context) => ({
+        MemberExpression: (node: Node) => {
+          const object = node.object as Node
+          const property = node.property as Node
+          if (object.type === "Identifier" && object.name === "Effect" && property.type === "Identifier" && property.name === "tryPromise") {
+            context.report({ node, message: "Check that no Effect-native alternative exists; otherwise wrap the Promise library once in a service under `adapters/`." })
+          }
+        },
+      }),
+    },
     // A named Effect.fn states what it succeeds with, how it fails and what it needs, so a change to any of them
     // is a type error at the definition rather than a surprise at the call site. Omitted E and R default to never.
     "effect-fn-return-type": {

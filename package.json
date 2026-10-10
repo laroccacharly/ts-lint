@@ -1,6 +1,6 @@
 {
   "name": "ts-lint",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "oxlint JS plugin with rules for Effect TypeScript code",
   "license": "MIT",
   "type": "module",

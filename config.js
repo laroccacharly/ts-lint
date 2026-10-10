@@ -6,6 +6,14 @@ export default {
   rules: {
     "ts-lint/effect-fn-return-type": "error",
     "ts-lint/no-undefined": "error",
+    "ts-lint/no-try-promise": "warn",
     "ts-lint/no-unknown": "warn",
   },
+  overrides: [
+    {
+      // Each Promise library is wrapped once, in an adapter service; the rest of the code uses the service.
+      files: ["**/adapters/**"],
+      rules: { "ts-lint/no-try-promise": "off" },
+    },
+  ],
 }
