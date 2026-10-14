@@ -31,9 +31,12 @@ const returnsEffect = (annotation: Node | undefined): boolean => {
     return false
   }
   const returned = (annotation.returnType as Node | undefined)?.typeAnnotation as Node | undefined
-  const name = returned?.type === "TSTypeReference" ? (returned.typeName as Node) : undefined
+  if (returned?.type !== "TSTypeReference") {
+    return false
+  }
+  const name = returned.typeName as Node
   return (
-    name?.type === "TSQualifiedName" &&
+    name.type === "TSQualifiedName" &&
     (name.left as Node).type === "Identifier" &&
     (name.left as Node).name === "Effect" &&
     (name.right as Node).name === "Effect"
@@ -81,6 +84,14 @@ export default {
           if (object.type === "Identifier" && object.name === "Effect" && property.type === "Identifier" && property.name === "tryPromise") {
             context.report({ node, message: "Check that no Effect-native alternative exists; otherwise wrap the Promise library once in a service under `adapters/`." })
           }
+        },
+      }),
+    },
+    // `a ? b : c` hides branching inside an expression; an `if` with an early return keeps each branch on its own lines.
+    "no-ternary": {
+      create: (context: Context) => ({
+        ConditionalExpression: (node: object) => {
+          context.report({ node, message: "Avoid the ternary; prefer an `if` with an early return." })
         },
       }),
     },

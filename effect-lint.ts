@@ -19,7 +19,12 @@ const cli = path.join(path.dirname(packageJson), "dist", "effect-tsgo.cjs")
 
 const args = process.argv.slice(2)
 // A default flag, dropped when the caller passes their own.
-const unless = (flag: string, value: string): string[] => (args.includes(flag) ? [] : [flag, value])
+const unless = (flag: string, value: string): string[] => {
+  if (args.includes(flag)) {
+    return []
+  }
+  return [flag, value]
+}
 
 const defaults = [
   ...unless("--project", path.resolve("tsconfig.json")),

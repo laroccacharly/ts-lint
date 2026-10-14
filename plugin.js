@@ -12,8 +12,11 @@ var returnsEffect = (annotation) => {
     return false;
   }
   const returned = annotation.returnType?.typeAnnotation;
-  const name = returned?.type === "TSTypeReference" ? returned.typeName : undefined;
-  return name?.type === "TSQualifiedName" && name.left.type === "Identifier" && name.left.name === "Effect" && name.right.name === "Effect";
+  if (returned?.type !== "TSTypeReference") {
+    return false;
+  }
+  const name = returned.typeName;
+  return name.type === "TSQualifiedName" && name.left.type === "Identifier" && name.left.name === "Effect" && name.right.name === "Effect";
 };
 var plugin_default = {
   meta: { name: "ts-lint" },
@@ -50,6 +53,13 @@ var plugin_default = {
           if (object.type === "Identifier" && object.name === "Effect" && property.type === "Identifier" && property.name === "tryPromise") {
             context.report({ node, message: "Check that no Effect-native alternative exists; otherwise wrap the Promise library once in a service under `adapters/`." });
           }
+        }
+      })
+    },
+    "no-ternary": {
+      create: (context) => ({
+        ConditionalExpression: (node) => {
+          context.report({ node, message: "Avoid the ternary; prefer an `if` with an early return." });
         }
       })
     },

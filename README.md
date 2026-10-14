@@ -8,19 +8,13 @@
 
 The source is `plugin.ts`; `plugin.js` is its build (`bun run build`), committed because Node does not strip types under `node_modules`.
 
-| Rule | What it reports |
-| --- | --- |
-| `ts-lint/no-unknown` | `unknown` in types; use the real type, or `void` when nothing is returned. |
-| `ts-lint/no-undefined` | `A \| undefined` types and `undefined` values; use `Option`. Comparing with `undefined` is allowed. |
-| `ts-lint/effect-fn-return-type` | `const f = Effect.fn(...)` without a `(...) => Effect.Effect<A, E, R>` annotation. |
-
 ## Usage
 
 ```sh
 bun add -d github:laroccacharly/ts-lint#v0.4.0
 ```
 
-`ts-lint/config` registers the plugin and enables every rule (`no-unknown` as a warning, the others as errors). Override a rule in the project's own `rules`.
+`ts-lint/config` registers the plugin and enables every rule. Override a rule in the project's own `rules`.
 
 ```ts
 // oxlint.config.ts

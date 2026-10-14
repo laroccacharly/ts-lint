@@ -8,6 +8,7 @@ export default {
     "ts-lint/no-undefined": "error",
     "ts-lint/no-try-promise": "warn",
     "ts-lint/no-unknown": "warn",
+    "ts-lint/no-ternary": "warn",
   },
   overrides: [
     {
