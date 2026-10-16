@@ -9,6 +9,7 @@ export default {
     "ts-lint/no-try-promise": "warn",
     "ts-lint/no-unknown": "warn",
     "ts-lint/no-ternary": "warn",
+    "max-depth": ["error", { max: 2 }],
   },
   overrides: [
     {
