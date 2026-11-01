@@ -51,6 +51,20 @@ const isEffectMember = (node: Node, names: readonly string[]): boolean =>
   (node.property as Node).type === "Identifier" &&
   names.includes((node.property as Node).name as string)
 
+// `cause: unknown`, as a parameter, a property or an optional field.
+const isCauseAnnotation = (node: Node): boolean => {
+  const annotation = node.parent as Node | undefined
+  if (annotation?.type !== "TSTypeAnnotation") {
+    return false
+  }
+  const owner = annotation.parent as Node | undefined
+  if (owner?.type === "Identifier") {
+    return owner.name === "cause"
+  }
+  const key = owner?.key as Node | undefined
+  return key?.type === "Identifier" && key.name === "cause"
+}
+
 // Tags of the data types that come with guards: `Option.isSome`, `Either.isLeft`, `Exit.isSuccess`, ...
 const GUARDED_TAGS = ["Some", "None", "Left", "Right", "Success", "Failure"]
 
@@ -66,10 +80,13 @@ export default {
   rules: {
     // `unknown` in a type erases what callers can use, e.g. a service method declared `Effect<unknown>`
     // while its implementation returns a value. Prefer the real type, or `void` when nothing is returned.
+    // A `cause` is exempt: it holds a thrown value, which has no narrower type.
     "no-unknown": {
       create: (context: Context) => ({
-        TSUnknownKeyword: (node: object) => {
-          context.report({ node, message: "Avoid `unknown`; use the real type, or `void` when nothing is returned." })
+        TSUnknownKeyword: (node: Node) => {
+          if (!isCauseAnnotation(node)) {
+            context.report({ node, message: "Avoid `unknown`; use the real type, or `void` when nothing is returned." })
+          }
         },
       }),
     },

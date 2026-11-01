@@ -19,6 +19,18 @@ var returnsEffect = (annotation) => {
   return name.type === "TSQualifiedName" && name.left.type === "Identifier" && name.left.name === "Effect" && name.right.name === "Effect";
 };
 var isEffectMember = (node, names) => node.type === "MemberExpression" && node.object.type === "Identifier" && node.object.name === "Effect" && node.property.type === "Identifier" && names.includes(node.property.name);
+var isCauseAnnotation = (node) => {
+  const annotation = node.parent;
+  if (annotation?.type !== "TSTypeAnnotation") {
+    return false;
+  }
+  const owner = annotation.parent;
+  if (owner?.type === "Identifier") {
+    return owner.name === "cause";
+  }
+  const key = owner?.key;
+  return key?.type === "Identifier" && key.name === "cause";
+};
 var GUARDED_TAGS = ["Some", "None", "Left", "Right", "Success", "Failure"];
 var RUNNERS = ["runPromise", "runPromiseWith", "runPromiseExit", "runPromiseExitWith", "runSync", "runSyncWith", "runSyncExit", "runSyncExitWith", "runFork", "runForkWith", "runCallback", "runCallbackWith"];
 var isTagRead = (node) => node.type === "MemberExpression" && node.property.type === "Identifier" && node.property.name === "_tag";
@@ -29,7 +41,9 @@ var plugin_default = {
     "no-unknown": {
       create: (context) => ({
         TSUnknownKeyword: (node) => {
-          context.report({ node, message: "Avoid `unknown`; use the real type, or `void` when nothing is returned." });
+          if (!isCauseAnnotation(node)) {
+            context.report({ node, message: "Avoid `unknown`; use the real type, or `void` when nothing is returned." });
+          }
         }
       })
     },
