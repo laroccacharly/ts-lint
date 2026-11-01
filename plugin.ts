@@ -43,6 +43,24 @@ const returnsEffect = (annotation: Node | undefined): boolean => {
   )
 }
 
+// `Effect.<name>` for one of `names`.
+const isEffectMember = (node: Node, names: readonly string[]): boolean =>
+  node.type === "MemberExpression" &&
+  (node.object as Node).type === "Identifier" &&
+  (node.object as Node).name === "Effect" &&
+  (node.property as Node).type === "Identifier" &&
+  names.includes((node.property as Node).name as string)
+
+// Tags of the data types that come with guards: `Option.isSome`, `Either.isLeft`, `Exit.isSuccess`, ...
+const GUARDED_TAGS = ["Some", "None", "Left", "Right", "Success", "Failure"]
+
+const RUNNERS = ["runPromise", "runPromiseWith", "runPromiseExit", "runPromiseExitWith", "runSync", "runSyncWith", "runSyncExit", "runSyncExitWith", "runFork", "runForkWith", "runCallback", "runCallbackWith"]
+
+const isTagRead = (node: Node): boolean =>
+  node.type === "MemberExpression" && (node.property as Node).type === "Identifier" && (node.property as Node).name === "_tag"
+
+const isGuardedTag = (node: Node): boolean => node.type === "Literal" && GUARDED_TAGS.includes(node.value as string)
+
 export default {
   meta: { name: "ts-lint" },
   rules: {
@@ -92,6 +110,56 @@ export default {
       create: (context: Context) => ({
         ConditionalExpression: (node: object) => {
           context.report({ node, message: "Avoid the ternary; prefer an `if` with an early return." })
+        },
+      }),
+    },
+    // `x._tag === "Some"` restates what `Option.isSome(x)` (or `Either.isLeft`, `Exit.isSuccess`, ...) says,
+    // and the guard narrows the type without depending on the tag's spelling.
+    "no-tag-compare": {
+      create: (context: Context) => ({
+        BinaryExpression: (node: Node) => {
+          if (!["===", "!==", "==", "!="].includes(node.operator as string)) {
+            return
+          }
+          const left = node.left as Node
+          const right = node.right as Node
+          if ((isTagRead(left) && isGuardedTag(right)) || (isTagRead(right) && isGuardedTag(left))) {
+            context.report({ node, message: "Use the data type's guard, e.g. `Option.isSome(x)` or `Exit.isSuccess(x)`, instead of comparing `_tag`." })
+          }
+        },
+      }),
+    },
+    // Running an Effect inside the program splits it in two runtimes: errors become rejected Promises, and
+    // interruption, services and tracing stop at the boundary. Run Effects once, at the entry point (BunRuntime.runMain);
+    // the shared config allows it in tests.
+    "no-run-promise": {
+      create: (context: Context) => ({
+        MemberExpression: (node: Node) => {
+          if (isEffectMember(node, RUNNERS)) {
+            context.report({ node, message: "Keep the code in Effect and run it once at the entry point; compose with the caller's Effect instead of running it here." })
+          }
+        },
+      }),
+    },
+    // Bun closes an HTTP request that has sent nothing for 10 seconds, including one whose handler is still working,
+    // so a slow upstream call fails in the client with a reset rather than the handler's own timeout or error.
+    "bun-serve-idle-timeout": {
+      create: (context: Context) => ({
+        CallExpression: (node: Node) => {
+          const callee = node.callee as Node
+          const isBunServe =
+            callee.type === "MemberExpression" &&
+            (callee.object as Node).type === "Identifier" &&
+            (callee.object as Node).name === "Bun" &&
+            (callee.property as Node).name === "serve"
+          const options = (node.arguments as readonly Node[])[0]
+          if (!isBunServe || options?.type !== "ObjectExpression") {
+            return
+          }
+          const keys = (options.properties as readonly Node[]).map((property) => (property.key as Node | undefined)?.name)
+          if (!keys.includes("idleTimeout")) {
+            context.report({ node, message: "Set `idleTimeout` on Bun.serve: by default Bun resets a request that sends nothing for 10 s, even while its handler runs." })
+          }
         },
       }),
     },

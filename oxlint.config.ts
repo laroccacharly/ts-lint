@@ -7,6 +7,8 @@ export default defineConfig({
     "ts-lint/no-unknown": "warn",
     "ts-lint/effect-fn-return-type": "error",
     "ts-lint/no-ternary": "warn",
+    "ts-lint/no-tag-compare": "error",
+    "import/no-duplicates": "error",
     "max-depth": ["error", { max: 2 }],
     // The plugin walks ESTree nodes, plain TypeScript rather than Effect code.
     "ts-lint/no-undefined": "off",
