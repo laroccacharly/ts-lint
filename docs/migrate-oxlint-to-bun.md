@@ -4,6 +4,8 @@ Bun now has a built-in linter (`bun lint`) and formatter (`bun fmt`). `bun lint`
 
 **Status (2026-11-01):** findings come from a prototype run against `bun@canary` (`1.4.4-canary.1+3f3a9ff87`). `bun lint` landed in oven-sh/bun#45043 (merged 2026-10-13) and is only on canary; stable 1.4.4 has no `bun lint`. `bun fmt` is already on stable 1.4.4. The plan is to migrate once `bun lint` ships in a stable release. Nothing below is applied yet.
 
+**Since v0.8.0** linting runs in one pass with [`effect-tsgo --tsrs-lint oxlint`](migrate-to-effect-tsgo-oxlint.md), which needs oxlint for the Effect rules. Moving to `bun lint` would bring back a second pass for them; see below.
+
 Docs: [bun lint](https://bun.com/docs/lint), [plugins](https://bun.com/docs/lint/plugins), [rules](https://bun.com/docs/lint/rules), [migrate from oxlint](https://bun.com/docs/guides/lint/migrate-from-oxlint), [bun fmt](https://bun.com/docs/format), [`[lint]` and `[fmt]` in bunfig.toml](https://bun.com/docs/runtime/bunfig#linter).
 
 ## The Bun commands
@@ -64,7 +66,7 @@ With `oxlint` deleted from `node_modules`, `bun lint` still gave identical resul
 ### Type checking and Effect diagnostics
 
 - `bun lint --type-aware --type-check` (or `typeAware = true` / `typeCheck = true` in `[lint]`) reports the same type errors as `tsc` (checked: TS2322 on a value and on an `Effect` type), plus typescript-eslint's type-aware rules such as `no-floating-promises`. It replaces a separate `tsc --noEmit` step.
-- Nothing replaces `ts-lint-effect`. A floating `Effect.log(...)` was reported by `ts-lint-effect` (`effect(floatingEffect)`) and not by `bun lint --type-aware`. `bun lint` has no Effect rules, and JavaScript plugin rules get no types (`parserServices.program` is `null`), so they can't be written as `ts-lint` rules either. `@effect/tsgo` and `ts-lint-effect` stay.
+- Nothing in `bun lint` replaces `ts-lint-effect`; for one pass with the Effect rules, see [`effect-tsgo --tsrs-lint oxlint`](migrate-to-effect-tsgo-oxlint.md). A floating `Effect.log(...)` was reported by `ts-lint-effect` (`effect(floatingEffect)`) and not by `bun lint --type-aware`. `bun lint` has no Effect rules, and JavaScript plugin rules get no types (`parserServices.program` is `null`), so they can't be written as `ts-lint` rules either. `@effect/tsgo` stays as a second step (`ts-lint-effect` before v0.8.0).
 
 ### Formatting
 
@@ -140,7 +142,7 @@ Steps 2 and 4 make the package unloadable by oxlint (TypeScript under `node_modu
    ```json
    {
      "scripts": {
-       "lint": "bun lint --type-aware --type-check && ts-lint-effect"
+       "lint": "bun lint --type-aware --type-check && effect-tsgo diagnostics --project tsconfig.json"
      }
    }
    ```

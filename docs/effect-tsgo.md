@@ -2,35 +2,42 @@
 
 `ts-lint` rules are syntax-only. [@effect/tsgo](https://github.com/Effect-TS/tsgo) adds about 100 type-aware Effect rules (floating Effects, chained `Effect.provide`, missing `return yield*`, ...).
 
-Linting runs in two steps: `oxlint` for general rules and the `ts-lint/*` rules (via `extends: [tsLint]` from `ts-lint/config`), then `ts-lint-effect` for the Effect rules. `ts-lint-effect` runs `effect-tsgo diagnostics`, which type-checks with its own embedded TypeScript-Go, so oxlint stays unpatched and its versions stay free. The cost is a second type-check pass, about a second on a small project.
+Linting runs in one pass: `effect-tsgo --tsrs-lint oxlint` runs an Effect-patched oxlint whose type-aware linter runs on tsrs, the Rust port of TypeScript 7. That pass reports oxlint's rules, the `ts-lint/*` rules (via `extends: [tsLint]` from `ts-lint/config`), typescript-eslint's type-aware rules, type errors and the Effect rules.
 
 ## Setup in a consumer package
 
-`ts-lint` declares `@effect/tsgo` as a peer dependency, so bun installs it alongside `ts-lint`. It also needs `typescript` >= 7 in the project.
+`ts-lint` declares `@effect/tsgo` and `oxlint` as peer dependencies, so bun installs them alongside `ts-lint`. tsrs ships inside `@effect/tsgo`; `oxlint-tsgolint` is not needed.
 
 ```sh
 bun add -d github:laroccacharly/ts-lint#<tag>
 ```
 
-Run both steps from `lint`:
+Turn on the Effect rules in `tsconfig.json`. Without this entry no Effect rule runs, and nothing says so. `unstableApiUsage` is off because it flags every `effect/cli`, `effect/http` and `effect/sql` import on Effect 4.0.
 
 ```json
 {
-  "scripts": {
-    "lint": "oxlint . && ts-lint-effect"
+  "compilerOptions": {
+    "plugins": [{ "name": "@effect/language-service", "diagnosticSeverity": { "unstableApiUsage": "off" } }]
   }
 }
 ```
 
-`ts-lint-effect` checks `./tsconfig.json` with the Effect rules at their default severities, except `unstableApiUsage`, which is off because it flags every `effect/cli`, `effect/http` and `effect/sql` import on Effect 4.0. No `tsconfig.json` plugin entry is needed. It exits non-zero on errors; warnings and suggestions are reported only.
+The same entry sets other rule severities, e.g. `"globalDate": "error"`, and gives the editor the Effect diagnostics through the TypeScript language service.
 
-Extra arguments go to `effect-tsgo diagnostics`, for example:
+Run it from `lint`. `--type-check` also reports type errors, so no separate `tsc` step is needed.
 
-- `--strict`: fail on warnings too.
-- `--format text|json|github-actions`: replace the default `pretty` output.
-- `--project path/to/tsconfig.json`: check another project.
-- `--lspconfig '<json>'`: replace the default rule config, e.g. `'{"name":"@effect/language-service","diagnosticSeverity":{"globalDate":"error"}}'`.
+```json
+{
+  "scripts": {
+    "lint": "effect-tsgo --tsrs-lint oxlint --type-aware --type-check"
+  }
+}
+```
 
-## Upgrading
+Every argument after `oxlint` goes to oxlint unchanged (`--fix`, `-f json`, paths, ...).
 
-Bump `@effect/tsgo` when a new release has rules or fixes you want. It does not depend on the installed `oxlint` or `oxlint-tsgolint` versions.
+## Versions
+
+`effect-tsgo oxlint` runs the patched build matching the installed `oxlint`. Each `@effect/tsgo` release ships builds for a few oxlint versions (1.88 to 1.91 in 0.67.1). With another oxlint version it stops and lists the supported ones; bump `@effect/tsgo` or pin `oxlint` to one of them.
+
+tsrs runs TypeScript 7.1-beta, so type errors can differ slightly from `tsc`. `--tsrs-lint` is marked experimental upstream.

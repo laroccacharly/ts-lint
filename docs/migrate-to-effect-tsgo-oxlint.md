@@ -1,0 +1,81 @@
+# Migrating to `effect-tsgo --tsrs-lint oxlint`: one lint pass
+
+Since `@effect/tsgo` 0.67.0, `effect-tsgo oxlint` runs an Effect-patched oxlint and its type-aware linter, and `--tsrs-lint` puts that linter on tsrs (the Rust port of TypeScript 7). One command then runs oxlint's rules, the `ts-lint/*` rules, typescript-eslint's type-aware rules, type errors and the Effect rules. This replaces `ts-lint-effect` and its second type-check pass.
+
+This is an alternative to [migrating to `bun lint`](migrate-oxlint-to-bun.md), which can't run the Effect rules.
+
+**Status (2026-11-04):** applied in `ts-lint` v0.8.0. Findings come from a prototype with `@effect/tsgo` 0.67.1, oxlint 1.91.0 and Effect 4.1.2. `--tsrs-lint` is marked experimental upstream. The setup itself is in [effect-tsgo.md](effect-tsgo.md).
+
+Docs: [@effect/tsgo](https://github.com/Effect-TS/tsgo), `effect-tsgo --help`.
+
+## The command
+
+```sh
+effect-tsgo --tsrs-lint oxlint --type-aware --type-check
+```
+
+- Every argument after `oxlint` goes to oxlint unchanged, so the config (`oxlint.config.ts` with `extends: [tsLint]`) and flags stay as they are.
+- `effect-tsgo oxlint` uses the patched build matching the installed `oxlint`. `@effect/tsgo` 0.67.1 ships builds for oxlint 1.88 to 1.91.
+- `effect-tsgo --tsrs-lint=<version|tag> vp lint` does the same for vite-plus.
+
+## What was verified
+
+A throwaway consumer installed `ts-lint`, `oxlint`, `@effect/tsgo`, `typescript` and `effect`, extended `ts-lint/config` and linted a file with a floating `Effect.log(...)`, a type error, a floating promise, a ternary and a duplicate import.
+
+| Check | Result |
+|---|---|
+| `import/no-duplicates`, `ts-lint/no-ternary` | reported, same as plain oxlint |
+| `typescript/no-floating-promises` | reported |
+| Type error (TS2322) through `--type-check` | reported |
+| `effect(floatingEffect)` | reported as `typescript(TS377001)`, same message as `ts-lint-effect` |
+| Exit code on errors | `1` |
+| `diagnosticSeverity` in the tsconfig plugin entry | respected (`floatingEffect: "off"` silences it) |
+| Time on the fixture | 0.35 s for the whole run |
+
+- `oxlint` is still needed: without it, `effect-tsgo oxlint` stops with `Unable to resolve oxlint from <dir>. Install oxlint (or vite-plus) in the project.` The installed version picks the patched build to run.
+- `oxlint-tsgolint` is not needed: tsrs, the patched oxlint and the patched tsgolint all ship in `@effect/tsgo-linux-x64` (and the other platform packages). Nothing is downloaded at lint time. The cost is a 245 MB platform package.
+- **The Effect rules need the tsconfig plugin entry.** Without `"plugins": [{ "name": "@effect/language-service" }]` in `compilerOptions`, no Effect rule runs and nothing says so. `ts-lint-effect` passed this config on the command line, so consumers upgrading from v0.7 have no entry.
+- Without `--tsrs-lint` (patched tsgolint, `oxlint-tsgolint` installed), the floating Effect was not reported. Only the tsrs path was made to work.
+
+## Gaps and risks
+
+- **Experimental**, and on a beta compiler: tsrs runs TypeScript 7.1-beta while tsgolint runs 7.0.2, so results can differ from `tsc`.
+- The oxlint version is tied to the builds shipped by `@effect/tsgo`: bumping oxlint past them waits for an `@effect/tsgo` release. `ts-lint-effect` left oxlint free.
+- A missing plugin entry silently drops every Effect rule (see above).
+- Editors: the oxlint language server is unpatched, so Effect diagnostics in the editor still come from the TypeScript language service with the plugin entry.
+
+## Migration
+
+### In ts-lint (done in v0.8.0)
+
+- Removed `effect-lint.ts` and the `ts-lint-effect` bin.
+- `lint` is `effect-tsgo --tsrs-lint oxlint --type-aware --type-check`, with a `tsconfig.json` for this repo.
+- Peer dependencies: `@effect/tsgo` `>=0.67.1` and `oxlint` `>=1.88.0`. An oxlint version without a patched build fails with a message listing the supported ones.
+
+The plugin and `ts-lint/config` don't change.
+
+### In each consumer
+
+1. Bump `ts-lint`: `bun remove ts-lint && bun add -d github:laroccacharly/ts-lint#v0.8.0`.
+2. `bun remove oxlint-tsgolint` if installed. Keep `oxlint`, at a version `@effect/tsgo` supports (1.88 to 1.91 today).
+3. `tsconfig.json`, keeping `unstableApiUsage` off as `ts-lint-effect` did:
+
+   ```json
+   {
+     "compilerOptions": {
+       "plugins": [{ "name": "@effect/language-service", "diagnosticSeverity": { "unstableApiUsage": "off" } }]
+     }
+   }
+   ```
+
+4. `package.json` scripts, replacing `oxlint . && ts-lint-effect` and any separate `tsc` step:
+
+   ```json
+   {
+     "scripts": {
+       "lint": "effect-tsgo --tsrs-lint oxlint --type-aware --type-check"
+     }
+   }
+   ```
+
+5. Check that a floating `Effect.log(...)` fails `bun run lint`, to catch a missing plugin entry.
