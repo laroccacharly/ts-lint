@@ -8,7 +8,7 @@ Linting runs in one pass: `effect-tsgo --tsrs-lint oxlint` runs an Effect-patche
 
 ## Setup in a consumer package
 
-`ts-lint` declares `@effect/tsgo` and `oxlint` as peer dependencies, so bun installs them alongside `ts-lint`. tsrs ships inside `@effect/tsgo`; `oxlint-tsgolint` is not needed.
+`ts-lint` depends on exact versions of `@effect/tsgo` and `oxlint`, known to work together, so the consumer installs neither: bumping the `ts-lint` tag upgrades them. tsrs ships inside `@effect/tsgo`; `oxlint-tsgolint` is not needed.
 
 ```sh
 bun add -d github:laroccacharly/ts-lint#<tag>
@@ -16,30 +16,32 @@ bun add -d github:laroccacharly/ts-lint#<tag>
 
 ```ts
 // oxlint.config.ts
-import tsLint from "ts-lint/config"
+import tsLint, { defineConfig } from "ts-lint/config"
 
-export default {
+export default defineConfig({
   extends: [tsLint],
-}
+})
 ```
 
 Change an Effect rule like any other, in the project's own `rules` (`"effecttsgo/global-date": "error"`), or silence one line with `// oxlint-disable-next-line effecttsgo/floating-effect`. Don't also add the `@effect/language-service` plugin entry to `tsconfig.json`: each Effect error would then be reported twice.
 
-Run it from `lint`. `--type-check` also reports type errors, so no separate `tsc` step is needed.
+Run the `ts-lint` bin from `lint`. It runs `effect-tsgo --tsrs-lint oxlint --type-aware --type-check`; `--type-check` also reports type errors, so no separate `tsc` step is needed.
 
 ```json
 {
   "scripts": {
-    "lint": "effect-tsgo --tsrs-lint oxlint --type-aware --type-check"
+    "lint": "ts-lint"
   }
 }
 ```
 
-Every argument after `oxlint` goes to oxlint unchanged (`--fix`, `-f json`, paths, ...).
+Every argument goes to oxlint unchanged (`ts-lint --fix`, `-f json`, paths, ...).
+
+`effect-tsgo` resolves oxlint from the working directory; the bin adds the `node_modules` holding the oxlint `ts-lint` depends on to `NODE_PATH`, so it is found with bun's isolated linker too. Don't add `oxlint` to the consumer's own dependencies: a different version would win over it.
 
 ## Versions
 
-`effect-tsgo oxlint` runs the patched build matching the installed `oxlint`. Each `@effect/tsgo` release ships builds for a few oxlint versions (1.88 to 1.91 in 0.67.1). With another oxlint version it stops and lists the supported ones; bump `@effect/tsgo` or pin `oxlint` to one of them.
+`effect-tsgo oxlint` runs the patched build matching the installed `oxlint`. Each `@effect/tsgo` release ships builds for a few oxlint versions (1.88 to 1.91 in 0.67.1). With another oxlint version it stops and lists the supported ones. `ts-lint` pins both, so bump them together in its `dependencies`.
 
 tsrs runs TypeScript 7.1-beta, so type errors can differ slightly from `tsc`. `--tsrs-lint` is marked experimental upstream.
 

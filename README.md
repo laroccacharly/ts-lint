@@ -20,15 +20,14 @@ bun add -d github:laroccacharly/ts-lint#<tag>
 
 ```ts
 // oxlint.config.ts
-import { defineConfig } from "oxlint"
-import tsLint from "ts-lint/config"
+import tsLint, { defineConfig } from "ts-lint/config"
 
 export default defineConfig({
   extends: [tsLint],
 })
 ```
 
-Run it with `effect-tsgo --tsrs-lint oxlint --type-aware --type-check` to get type errors and the type-aware Effect rules from [@effect/tsgo](https://github.com/Effect-TS/tsgo) in the same pass: see [docs/effect-tsgo.md](docs/effect-tsgo.md). Upgrading from v0.7: [docs/migrate-to-effect-tsgo-oxlint.md](docs/migrate-to-effect-tsgo-oxlint.md).
+Run it with the `ts-lint` bin (`"lint": "ts-lint"`): it runs the oxlint and [@effect/tsgo](https://github.com/Effect-TS/tsgo) versions ts-lint pins, and reports type errors and the type-aware Effect rules in the same pass: see [docs/effect-tsgo.md](docs/effect-tsgo.md). Upgrading from v0.8 or earlier: [docs/migrate-to-effect-tsgo-oxlint.md](docs/migrate-to-effect-tsgo-oxlint.md).
 
 ## Releasing
 

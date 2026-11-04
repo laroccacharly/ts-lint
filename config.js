@@ -1,8 +1,11 @@
 // oxlint config enabling every ts-lint rule and the Effect rules; consumers add it to `extends`.
 // Plain JS: Node does not strip types under node_modules.
-// The effecttsgo plugin exists only in the patched oxlint: run it with `effect-tsgo --tsrs-lint oxlint`.
+// The effecttsgo plugin exists only in the patched oxlint: run it with the `ts-lint` bin.
 
 import { recommended } from "@effect/tsgo/oxlint-presets"
+
+// Consumers type their own oxlint.config.ts with it, without depending on oxlint.
+export { defineConfig } from "oxlint"
 
 export default {
   // oxlint's defaults, plus import for import/no-duplicates and the type-aware Effect rules.

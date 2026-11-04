@@ -4,13 +4,9 @@
   "workspaces": {
     "": {
       "name": "ts-lint",
-      "devDependencies": {
+      "dependencies": {
         "@effect/tsgo": "0.67.1",
         "oxlint": "1.91.0",
-      },
-      "peerDependencies": {
-        "@effect/tsgo": ">=0.67.1",
-        "oxlint": ">=1.88.0",
       },
     },
   },

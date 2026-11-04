@@ -53,20 +53,22 @@ A throwaway consumer installed `ts-lint`, `oxlint`, `@effect/tsgo`, `typescript`
 - `lint` is `effect-tsgo --tsrs-lint oxlint --type-aware --type-check`, with a `tsconfig.json` for this repo.
 - Peer dependencies: `@effect/tsgo` `>=0.67.1` and `oxlint` `>=1.88.0`. An oxlint version without a patched build fails with a message listing the supported ones.
 
+v0.9.0: `@effect/tsgo` and `oxlint` are exact `dependencies` instead of peers, the `ts-lint` bin runs the command, and `ts-lint/config` re-exports `defineConfig`. Consumers install neither package and their `lint` is `ts-lint`.
+
 v0.8.1: `ts-lint/config` enables the `effecttsgo/*` rules (`recommended` preset, `unstable-api-usage` off), so the `tsconfig.json` plugin entry is no longer needed.
 
 ### In each consumer
 
-1. Bump `ts-lint`: `bun remove ts-lint && bun add -d github:laroccacharly/ts-lint#<tag>`, with the latest tag (v0.8.1 or later).
-2. `bun remove oxlint-tsgolint` if installed. Keep `oxlint`, at a version `@effect/tsgo` supports (1.88 to 1.91 today).
-3. Keep `oxlint.config.ts` as `extends: [tsLint]`. Don't add an `@effect/language-service` plugin entry to `tsconfig.json`, and remove it if v0.8.0 had you add one: Effect errors would be reported twice.
+1. Bump `ts-lint`: `bun remove ts-lint && bun add -d github:laroccacharly/ts-lint#<tag>`, with the latest tag (v0.9.0 or later).
+2. `bun remove oxlint oxlint-tsgolint @effect/tsgo`, whichever are installed: `ts-lint` brings the versions it supports.
+3. Keep `oxlint.config.ts` as `extends: [tsLint]`, importing `defineConfig` from `ts-lint/config` instead of `oxlint`. Don't add an `@effect/language-service` plugin entry to `tsconfig.json`, and remove it if v0.8.0 had you add one: Effect errors would be reported twice.
 
-4. `package.json` scripts, replacing `oxlint . && ts-lint-effect` and any separate `tsc` step:
+4. `package.json` scripts, replacing `oxlint . && ts-lint-effect` or `effect-tsgo --tsrs-lint oxlint ...`, and any separate `tsc` step:
 
    ```json
    {
      "scripts": {
-       "lint": "effect-tsgo --tsrs-lint oxlint --type-aware --type-check"
+       "lint": "ts-lint"
      }
    }
    ```
