@@ -17,7 +17,7 @@
   "scripts": {
     "build": "bun build plugin.ts --outfile plugin.js --target node --format esm",
     "lint": "node cli.js",
-    "release": "bun run build && git commit -am v$npm_package_version && git tag v$npm_package_version && git push origin main v$npm_package_version"
+    "release": "bun run build && git add -A && git commit -m v$npm_package_version && git tag v$npm_package_version && git push origin main v$npm_package_version"
   },
   "files": [
     "cli.js",
