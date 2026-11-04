@@ -1,11 +1,18 @@
-// oxlint config enabling every ts-lint rule; consumers add it to `extends`.
+// oxlint config enabling every ts-lint rule and the Effect rules; consumers add it to `extends`.
 // Plain JS: Node does not strip types under node_modules.
+// The effecttsgo plugin exists only in the patched oxlint: run it with `effect-tsgo --tsrs-lint oxlint`.
+
+import { recommended } from "@effect/tsgo/oxlint-presets"
 
 export default {
-  // oxlint's defaults, plus import for import/no-duplicates.
-  plugins: ["typescript", "unicorn", "oxc", "import"],
+  // oxlint's defaults, plus import for import/no-duplicates and the type-aware Effect rules.
+  plugins: ["typescript", "unicorn", "oxc", "import", "effecttsgo"],
   jsPlugins: ["ts-lint"],
+  options: { typeAware: true },
   rules: {
+    ...recommended.rules,
+    // Flags every effect/http, effect/cli and effect/sql import on Effect 4.
+    "effecttsgo/unstable-api-usage": "off",
     "ts-lint/effect-fn-return-type": "error",
     "ts-lint/no-undefined": "error",
     "ts-lint/no-try-promise": "warn",

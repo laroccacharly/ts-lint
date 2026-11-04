@@ -34,14 +34,15 @@ A throwaway consumer installed `ts-lint`, `oxlint`, `@effect/tsgo`, `typescript`
 
 - `oxlint` is still needed: without it, `effect-tsgo oxlint` stops with `Unable to resolve oxlint from <dir>. Install oxlint (or vite-plus) in the project.` The installed version picks the patched build to run.
 - `oxlint-tsgolint` is not needed: tsrs, the patched oxlint and the patched tsgolint all ship in `@effect/tsgo-linux-x64` (and the other platform packages). Nothing is downloaded at lint time. The cost is a 245 MB platform package.
-- **The Effect rules need the tsconfig plugin entry.** Without `"plugins": [{ "name": "@effect/language-service" }]` in `compilerOptions`, no Effect rule runs and nothing says so. `ts-lint-effect` passed this config on the command line, so consumers upgrading from v0.7 have no entry.
+- **The Effect rules must be turned on**, or none runs and nothing says so. Either through the `@effect/language-service` plugin entry in `tsconfig.json`, or as oxlint rules: `@effect/tsgo/oxlint-presets` exports presets (`recommended` matches the language service defaults) enabling the `effecttsgo/*` rules. Since v0.8.1 `ts-lint/config` spreads `recommended`, so consumers need no plugin entry. With both, each Effect error is reported twice.
+- Through the oxlint rules, `oxlint-disable` comments and `overrides` apply to the Effect rules too. The stock `oxlint` binary rejects the config (`Unknown plugin: 'effecttsgo'`).
 - Without `--tsrs-lint` (patched tsgolint, `oxlint-tsgolint` installed), the floating Effect was not reported. Only the tsrs path was made to work.
 
 ## Gaps and risks
 
 - **Experimental**, and on a beta compiler: tsrs runs TypeScript 7.1-beta while tsgolint runs 7.0.2, so results can differ from `tsc`.
 - The oxlint version is tied to the builds shipped by `@effect/tsgo`: bumping oxlint past them waits for an `@effect/tsgo` release. `ts-lint-effect` left oxlint free.
-- A missing plugin entry silently drops every Effect rule (see above).
+- Editor extensions running the stock oxlint fail on the config until `effect-tsgo patch` patches the installed oxlint.
 - Editors: the oxlint language server is unpatched, so Effect diagnostics in the editor still come from the TypeScript language service with the plugin entry.
 
 ## Migration
@@ -52,21 +53,13 @@ A throwaway consumer installed `ts-lint`, `oxlint`, `@effect/tsgo`, `typescript`
 - `lint` is `effect-tsgo --tsrs-lint oxlint --type-aware --type-check`, with a `tsconfig.json` for this repo.
 - Peer dependencies: `@effect/tsgo` `>=0.67.1` and `oxlint` `>=1.88.0`. An oxlint version without a patched build fails with a message listing the supported ones.
 
-The plugin and `ts-lint/config` don't change.
+v0.8.1: `ts-lint/config` enables the `effecttsgo/*` rules (`recommended` preset, `unstable-api-usage` off), so the `tsconfig.json` plugin entry is no longer needed.
 
 ### In each consumer
 
-1. Bump `ts-lint`: `bun remove ts-lint && bun add -d github:laroccacharly/ts-lint#v0.8.0`.
+1. Bump `ts-lint`: `bun remove ts-lint && bun add -d github:laroccacharly/ts-lint#<tag>`, with the latest tag (v0.8.1 or later).
 2. `bun remove oxlint-tsgolint` if installed. Keep `oxlint`, at a version `@effect/tsgo` supports (1.88 to 1.91 today).
-3. `tsconfig.json`, keeping `unstableApiUsage` off as `ts-lint-effect` did:
-
-   ```json
-   {
-     "compilerOptions": {
-       "plugins": [{ "name": "@effect/language-service", "diagnosticSeverity": { "unstableApiUsage": "off" } }]
-     }
-   }
-   ```
+3. Keep `oxlint.config.ts` as `extends: [tsLint]`. Don't add an `@effect/language-service` plugin entry to `tsconfig.json`, and remove it if v0.8.0 had you add one: Effect errors would be reported twice.
 
 4. `package.json` scripts, replacing `oxlint . && ts-lint-effect` and any separate `tsc` step:
 
@@ -78,4 +71,4 @@ The plugin and `ts-lint/config` don't change.
    }
    ```
 
-5. Check that a floating `Effect.log(...)` fails `bun run lint`, to catch a missing plugin entry.
+5. Check that a floating `Effect.log(...)` fails `bun run lint` with `effecttsgo(floating-effect)`.

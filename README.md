@@ -11,8 +11,10 @@ The source is `plugin.ts`; `plugin.js` is its build (`bun run build`), committed
 ## Usage
 
 ```sh
-bun add -d github:laroccacharly/ts-lint#v0.8.0
+bun add -d github:laroccacharly/ts-lint#<tag>
 ```
+
+`<tag>` is the latest [tag](https://github.com/laroccacharly/ts-lint/tags), e.g. `v1.2.3`.
 
 `ts-lint/config` registers the plugin and enables every rule. Override a rule in the project's own `rules`.
 
@@ -30,10 +32,6 @@ Run it with `effect-tsgo --tsrs-lint oxlint --type-aware --type-check` to get ty
 
 ## Releasing
 
-Pin a tag in consumers (`github:laroccacharly/ts-lint#v0.8.0`) so a new version is a new specifier and bun fetches it, rather than reusing a cached `main`.
+Pin a tag in consumers (`github:laroccacharly/ts-lint#<tag>`) so a new version is a new specifier and bun fetches it, rather than reusing a cached `main`.
 
-```sh
-bun run build
-# bump "version" in package.json, then:
-git commit -am "v0.8.0" && git tag v0.8.0 && git push origin main v0.8.0
-```
+Bump `version` in `package.json`, then `bun run release`: it builds, commits, tags `v<version>` and pushes.

@@ -4,7 +4,7 @@ Bun now has a built-in linter (`bun lint`) and formatter (`bun fmt`). `bun lint`
 
 **Status (2026-11-01):** findings come from a prototype run against `bun@canary` (`1.4.4-canary.1+3f3a9ff87`). `bun lint` landed in oven-sh/bun#45043 (merged 2026-10-13) and is only on canary; stable 1.4.4 has no `bun lint`. `bun fmt` is already on stable 1.4.4. The plan is to migrate once `bun lint` ships in a stable release. Nothing below is applied yet.
 
-**Since v0.8.0** linting runs in one pass with [`effect-tsgo --tsrs-lint oxlint`](migrate-to-effect-tsgo-oxlint.md), which needs oxlint for the Effect rules. Moving to `bun lint` would bring back a second pass for them; see below.
+**Since v0.8.0** linting runs in one pass with [`effect-tsgo --tsrs-lint oxlint`](migrate-to-effect-tsgo-oxlint.md), which needs oxlint for the Effect rules. Moving to `bun lint` would bring back a second pass for them (see below), and `ts-lint/config` would have to drop the `effecttsgo/*` rules it enables since v0.8.1, which only the patched oxlint knows.
 
 Docs: [bun lint](https://bun.com/docs/lint), [plugins](https://bun.com/docs/lint/plugins), [rules](https://bun.com/docs/lint/rules), [migrate from oxlint](https://bun.com/docs/guides/lint/migrate-from-oxlint), [bun fmt](https://bun.com/docs/format), [`[lint]` and `[fmt]` in bunfig.toml](https://bun.com/docs/runtime/bunfig#linter).
 

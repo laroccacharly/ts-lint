@@ -5,8 +5,7 @@
     "moduleResolution": "bundler",
     "target": "esnext",
     "noEmit": true,
-    "skipLibCheck": true,
-    "plugins": [{ "name": "@effect/language-service" }]
+    "skipLibCheck": true
   },
   "include": ["plugin.ts", "oxlint.config.ts"]
 }
